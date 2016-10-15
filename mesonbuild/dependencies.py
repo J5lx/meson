@@ -59,6 +59,9 @@ class Dependency():
     def need_threads(self):
         return False
 
+    def get_pkgconfig_variable(self, variable_name):
+        raise MesonException('Tried to get a pkg-config variable from a non-pkgconfig dependency.')
+
 class InternalDependency(Dependency):
     def __init__(self, version, incdirs, compile_args, link_args, libraries, sources, ext_deps):
         super().__init__()
@@ -186,7 +189,7 @@ class PkgConfigDependency(Dependency):
                 self.is_libtool = True
             self.libs.append(lib)
 
-    def get_variable(self, variable_name):
+    def get_pkgconfig_variable(self, variable_name):
         ret, out = self._call_pkgbin(['--variable=' + variable_name, self.name])
         variable = ''
         if ret != 0:
@@ -195,8 +198,7 @@ class PkgConfigDependency(Dependency):
                                           (self.type_string, self.name))
         else:
             variable = out.strip()
-        mlog.debug('return of subprocess : %s' % variable)
-
+        mlog.debug('Got pkgconfig variable %s : %s' % (variable_name, variable))
         return variable
 
     def get_modversion(self):

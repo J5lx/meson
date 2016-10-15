@@ -278,13 +278,25 @@ class DependencyHolder(InterpreterObject):
         InterpreterObject.__init__(self)
         self.held_object = dep
         self.methods.update({'found' : self.found_method,
-                             'version': self.version_method})
+                             'version': self.version_method,
+                             'get_pkgconfig_variable': self.pkgconfig_method,
+                             })
 
     def found_method(self, args, kwargs):
         return self.held_object.found()
 
     def version_method(self, args, kwargs):
         return self.held_object.get_version()
+
+    def pkgconfig_method(self, args, kwargs):
+        if not isinstance(args, list):
+            args = [args]
+        if len(args) != 1:
+            raise InterpreterException('get_pkgconfig_variable takes exactly one argument.')
+        varname = args[0]
+        if not isinstance(varname, str):
+            raise InterpreterException('Variable name must be a string.')
+        return self.held_object.get_pkgconfig_variable(varname)
 
 class InternalDependencyHolder(InterpreterObject):
     def __init__(self, dep):
