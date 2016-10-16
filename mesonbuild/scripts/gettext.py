@@ -33,6 +33,13 @@ def gen_gmo(src_sub, bld_sub, langs):
                                '-o', os.path.join(bld_sub, l + '.gmo')])
     return 0
 
+def update_po(src_sub, pkgname, langs):
+    potfile = os.path.join(src_sub, pkgname + '.pot')
+    for l in langs:
+        pofile = os.path.join(src_sub, l + '.po')
+        subprocess.check_call(['msgmerge', '-q', '-o', pofile, pofile, potfile])
+    return 0
+
 def do_install(src_sub, bld_sub, dest, pkgname, langs):
     for l in langs:
         srcfile = os.path.join(bld_sub, l + '.gmo')
@@ -54,6 +61,14 @@ def run(args):
         src_sub = os.path.join(os.environ['MESON_SOURCE_ROOT'], os.environ['MESON_SUBDIR'])
         bld_sub = os.path.join(os.environ['MESON_BUILD_ROOT'], os.environ['MESON_SUBDIR'])
         return gen_gmo(src_sub, bld_sub, args[1:])
+    elif subcmd == 'update_po':
+        pkgname = args[1]
+        langs = args[2].split('@@')
+        extra_args = args[3:]
+        src_sub = os.path.join(os.environ['MESON_SOURCE_ROOT'], os.environ['MESON_SUBDIR'])
+        if run_potgen(src_sub, pkgname, extra_args) != 0:
+            return 1
+        return update_po(src_sub, pkgname, langs)
     elif subcmd == 'install':
         subdir = args[1]
         pkgname = args[2]
